@@ -1,0 +1,22 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/stretch64"
+  config.vm.box_version = "9.3.0"
+
+  (8000..8100).step(1) do |n|
+    config.vm.network "forwarded_port", guest: n, host: n, auto_correct: true
+  end
+
+  config.vm.provider "virtualbox" do |v|
+    v.name = "debian-9.3.0-amd64"
+    v.memory = "8192"
+    v.gui = true
+    v.cpus = 4
+    v.customize ["modifyvm", :id, "--cpuexecutioncap", "80"]
+    v.customize ["modifyvm", :id, "--vram", "256"]
+    v.customize ["modifyvm", :id, "--accelerate3d", "on"]
+    v.customize ["modifyvm", :id, "--ostype", "Debian_64"]
+  end
+
+  config.vm.provision "shell", privileged: true, path: "provision/setup.sh"
+
+end
