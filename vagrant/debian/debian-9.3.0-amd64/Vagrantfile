@@ -1,22 +1,97 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "debian/stretch64"
-  config.vm.box_version = "9.3.0"
+  config.vm.box = "debian/contrib-stretch64"
+  config.vm.post_up_message = "Success."
 
   (8000..8100).step(1) do |n|
     config.vm.network "forwarded_port", guest: n, host: n, auto_correct: true
   end
 
+  config.vm.network "forwarded_port", guest: 22, host: 2222
+
+  config.vm.network "private_network", ip: "127.0.0.2"
+
   config.vm.provider "virtualbox" do |v|
     v.name = "debian-9.3.0-amd64"
-    v.memory = "8192"
-    v.gui = true
+    v.memory = "6144"
     v.cpus = 4
-    v.customize ["modifyvm", :id, "--cpuexecutioncap", "80"]
+    v.customize ["modifyvm", :id, "--cpuexecutioncap", "60"]
     v.customize ["modifyvm", :id, "--vram", "256"]
     v.customize ["modifyvm", :id, "--accelerate3d", "on"]
     v.customize ["modifyvm", :id, "--ostype", "Debian_64"]
   end
 
-  config.vm.provision "shell", privileged: true, path: "provision/setup.sh"
+  provision = <<-SCRIPT
 
+print_message () {
+  echo " >>>=============>  $1"
+}
+
+install () {
+  print_message "$1 installing"
+  apt-get -qq install  -y $1
+  print_message "$1 installed"
+}
+
+
+print_message "Adding repositories"
+cat > /etc/apt/sources.list << EOF
+deb http://deb.debian.org/debian stretch main contrib non-free
+deb http://http.debian.net/debian stretch-backports main contrib non-free
+deb http://security.debian.org/debian-security stretch/updates main contrib non-free
+EOF
+curl -o /tmp/setup_8.x https://deb.nodesource.com/setup_8.x
+sh /tmp/setup_8.x > /dev/null
+print_message "Added repositories"
+
+
+print_message "Reseting SSH welcome message"
+echo -n > /etc/motd
+print_message "SSH welcome message reset"
+
+
+print_message "Updating repositories"
+apt-get -qq update
+print_message "Updated repositories"
+
+
+print_message "Performing upgrade"
+apt-get -qq upgrade -y
+print_message "Upgrade complete"
+
+
+install sysvinit-utils
+install vim
+install curl
+install rlwrap
+install openjdk-9-jre
+install openjdk-9-jdk
+install git
+install subversion
+install samba
+install sbcl
+install nodejs
+install build-essential
+
+
+print_message "Installing: pm2"
+npm install pm2 -g
+print_message "Installation complete: pm2"
+
+
+print_message "Installing: rustc"
+curl -o /tmp/rustup.sh https://static.rust-lang.org/rustup.sh
+sh /tmp/rustup.sh > /dev/null
+print_message "Installation complete: rustc"
+
+
+print_message "Installing: Quicklisp"
+curl -o /tmp/ql.lisp http://beta.quicklisp.org/quicklisp.lisp
+sbcl --no-sysinit --no-userinit --load /tmp/ql.lisp --eval '(quicklisp-quickstart:install :path ".quicklisp")' --quit > /dev/null
+print_message "Installation complete: Quicklisp"
+
+SCRIPT
+
+
+
+  config.vm.provision "shell", privileged: true, inline: provision
 end
