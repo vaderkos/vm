@@ -6,8 +6,6 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: n, host: n, auto_correct: true
   end
 
-  config.vm.network "forwarded_port", guest: 22, host: 2222
-
   config.vm.network "private_network", ip: "127.0.0.2"
 
   config.vm.provider "virtualbox" do |v|
@@ -73,21 +71,27 @@ install nodejs
 install build-essential
 
 
-print_message "Installing: pm2"
+print_message "pm2 installing"
 npm install pm2 -g
-print_message "Installation complete: pm2"
+print_message "pm2 installed"
 
+print_message "lein installing"
+wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -P /usr/bin > /dev/null
+chmod a+x /usr/bin/lein
+export PATH=$PATH:/usr/bin
+./usr/bin/lein
+print_message "lein installed"
 
-print_message "Installing: rustc"
+print_message "rustc installing"
 curl -o /tmp/rustup.sh https://static.rust-lang.org/rustup.sh
 sh /tmp/rustup.sh > /dev/null
-print_message "Installation complete: rustc"
+print_message "rustc installed"
 
 
-print_message "Installing: Quicklisp"
+print_message "Quicklisp installing"
 curl -o /tmp/ql.lisp http://beta.quicklisp.org/quicklisp.lisp
 sbcl --no-sysinit --no-userinit --load /tmp/ql.lisp --eval '(quicklisp-quickstart:install :path ".quicklisp")' --quit > /dev/null
-print_message "Installation complete: Quicklisp"
+print_message "Quicklisp installed"
 
 SCRIPT
 
