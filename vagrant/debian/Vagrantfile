@@ -1,0 +1,26 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/contrib-stretch64"
+  config.vm.post_up_message = "Success"
+
+  (8000..8100).step(1) do |n|
+    config.vm.network "forwarded_port", guest: n, host: n, auto_correct: true
+  end
+
+  config.vm.hostname = 'vm.vagrant';
+
+  config.vm.network "private_network", ip: "127.0.0.2"
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provider "virtualbox" do |v|
+    v.name = "Debian 9.3.0 amd64"
+    v.memory = "6144"
+    v.cpus = 4
+    v.customize ["modifyvm", :id, "--cpuexecutioncap", "60"]
+    v.customize ["modifyvm", :id, "--vram", "256"]
+    v.customize ["modifyvm", :id, "--accelerate3d", "on"]
+    v.customize ["modifyvm", :id, "--ostype", "Debian_64"]
+  end
+
+  config.vm.provision "shell", privileged: true, path: "provision.sh"
+end
