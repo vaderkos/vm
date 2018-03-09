@@ -57,10 +57,16 @@ add_nodejs_repositories () {
     print_message "nodejs_8.x repositories added"
 }
 
+fix_npm_registry () {
+    print_message "npm registry fixing"
+    npm config set registry http://registry.npmjs.org/ -g
+    print_message "npm registry fixed"
+}
+
 install_pm2 () {
     check nodejs
     print_message "pm2 installing"
-    npm install pm2 -s -g >> /tmp/provision.log
+    npm install pm2 -g
     print_message "pm2 installed"
 }
 
@@ -84,55 +90,15 @@ install_rustc () {
 
 set_samba_config () {
     print_message "Setting smb.conf"
-    cat > /etc/samba/smb.conf << EOF
-[global]
-   workgroup = WORKGROUP
-   server string = %h server (Samba, Ubuntu)
-   dns proxy = no
-   log file = /var/log/samba/log.%m
-   max log size = 10000
-   syslog = 0
-   panic action = /usr/share/samba/panic-action %d
-   server role = standalone server
-   passdb backend = tdbsam
-   obey pam restrictions = yes
-   unix password sync = yes
-   passwd program = /usr/bin/passwd %u
-   passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
-   pam password change = yes
-   map to guest = bad user
-   load printers = no
-   usershare allow guests = yes
-   guest account = upseller
-   usershare allow guests = yes
-
-[printers]
-   comment = All Printers
-   browseable = no
-   path = /var/spool/samba
-   printable = yes
-   guest ok = no
-   read only = yes
-   create mask = 0700
-
-[print$]
-   comment = Printer Drivers
-   path = /var/lib/samba/printers
-   browseable = yes
-   read only = yes
-   guest ok = no
-
-[work]
-   comment = /
-   path = /
-   browseable = yes
-   read only = no
-   public = yes
-   available = yes
-   writeable = yes
-   guest ok = yes
-   map archive = no
-EOF
+#     cat > /etc/samba/smb.conf << EOF
+# [root]
+# path = /
+# comment = Root directory
+# create mask = 0755
+# force user = root
+# browsable = yes
+# read only = no
+# EOF
     print_message "smb.conf set"
 }
 
@@ -150,6 +116,7 @@ main () {
 
     quite_install curl
     quite_install sysvinit-utils
+    quite_install psmisc
     quite_install vim
     quite_install rlwrap
     quite_install openjdk-9-jre
@@ -160,6 +127,8 @@ main () {
     quite_install sbcl
     quite_install nodejs
     quite_install build-essential
+
+    fix_npm_registry
 
     install_pm2
     install_lein

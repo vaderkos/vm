@@ -1,1 +1,1 @@
-{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"D:/git/vm/vagrant/debian","disabled":false,"__vagrantfile":true}}}
+{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"D:/GitHub/vm/vagrant/debian","disabled":false,"__vagrantfile":true}}}
